@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<schema name="schedules" version="1.6">
+
+    <!-- Tipos de campo -->
+    <fieldType name="string" class="solr.StrField" sortMissingLast="true" docValues="true"/>
+    <fieldType name="long" class="solr.LongPointField" docValues="true"/>
+    <fieldType name="double" class="solr.DoublePointField" docValues="true"/>
+    <fieldType name="boolean" class="solr.BoolField" sortMissingLast="true"/>
+    <fieldType name="date" class="solr.DatePointField" docValues="true"/>
+    <fieldType name="int" class="solr.IntPointField" docValues="true"/>
+
+    <!-- Text field con análisis para búsqueda full-text -->
+    <fieldType name="text_general" class="solr.TextField" positionIncrementGap="100" multiValued="true">
+        <analyzer type="index">
+            <tokenizer class="solr.StandardTokenizerFactory"/>
+            <filter class="solr.LowerCaseFilterFactory"/>
+            <filter class="solr.StopFilterFactory" words="stopwords.txt" ignoreCase="true"/>
+        </analyzer>
+        <analyzer type="query">
+            <tokenizer class="solr.StandardTokenizerFactory"/>
+            <filter class="solr.LowerCaseFilterFactory"/>
+            <filter class="solr.StopFilterFactory" words="stopwords.txt" ignoreCase="true"/>
+        </analyzer>
+    </fieldType>
+
+    <!-- Campo único requerido -->
+    <field name="id" type="string" indexed="true" stored="true" required="true" multiValued="false"/>
+    <field name="_version_" type="long" indexed="false" stored="false"/>
+    <uniqueKey>id</uniqueKey>
+
+    <!-- Campos del Schedule -->
+    <field name="schedule_id" type="string" indexed="true" stored="true" required="true"/>
+    <field name="activity_id" type="string" indexed="true" stored="true" required="true"/>
+    <field name="activity_name" type="text_general" indexed="true" stored="true"/>
+    <field name="activity_category" type="string" indexed="true" stored="true"/>
+    <field name="instructor" type="text_general" indexed="true" stored="true"/>
+    <field name="day_of_week" type="string" indexed="true" stored="true"/>
+    <field name="start_time" type="string" indexed="true" stored="true"/>
+    <field name="end_time" type="string" indexed="true" stored="true"/>
+    <field name="location" type="string" indexed="true" stored="true"/>
+    <field name="max_capacity" type="int" indexed="true" stored="true"/>
+    <field name="current_bookings" type="int" indexed="true" stored="true"/>
+    <field name="available_spots" type="int" indexed="true" stored="true"/>
+    <field name="price" type="double" indexed="true" stored="true"/>
+    <field name="status" type="string" indexed="true" stored="true"/>
+
+    <!-- Campo para búsqueda general (copia de varios campos) -->
+    <field name="text" type="text_general" indexed="true" stored="false" multiValued="true"/>
+    <copyField source="activity_name" dest="text"/>
+    <copyField source="instructor" dest="text"/>
+    <copyField source="activity_category" dest="text"/>
+    <copyField source="location" dest="text"/>
+
+</schema>

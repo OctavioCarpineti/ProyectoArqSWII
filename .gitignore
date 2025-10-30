@@ -1,0 +1,61 @@
+# Binarios de Go
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+go.work
+
+# Directorios de build
+/backend/*/main
+/backend/*/app
+/backend/*/*.exe
+
+# IDEs
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Dependencias
+vendor/
+
+# Variables de entorno
+.env
+.env.local
+.env.*.local
+
+# Logs
+*.log
+logs/
+
+# Docker
+*.pid
+
+# Node modules (frontend)
+/frontend/node_modules/
+/frontend/build/
+/frontend/.pnp
+/frontend/.pnp.js
+/frontend/coverage/
+
+# Testing
+/coverage
+*.cover
+*.coverprofile
+
+# Datos persistentes (solo para desarrollo local)
+/data/
+*.db
+
+# Archivos temporales
+tmp/
+temp/
+*.tmp
+
+# Sistema operativo
+Thumbs.db

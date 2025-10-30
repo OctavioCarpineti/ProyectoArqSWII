@@ -1,0 +1,266 @@
+version: '3.8'
+
+services:
+  # ================================
+  # BASES DE DATOS
+  # ================================
+
+  # MySQL para users-api
+  mysql:
+    image: mysql:8.0
+    container_name: gym-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: root123
+      MYSQL_DATABASE: gym_users
+      MYSQL_USER: gym_user
+      MYSQL_PASSWORD: gym_pass
+    ports:
+      - "3307:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./database/mysql/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - gym-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      timeout: 20s
+      retries: 10
+
+  # MongoDB para activities-api y bookings-api
+  mongodb:
+    image: mongo:7.0
+    container_name: gym-mongodb
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: admin123
+      MONGO_INITDB_DATABASE: gym_db
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+      - ./database/mongo/init.js:/docker-entrypoint-initdb.d/init.js
+    networks:
+      - gym-network
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
+      interval: 10s
+      timeout: 10s
+      retries: 5
+
+  # ================================
+  # MENSAJERÍA
+  # ================================
+
+  # RabbitMQ para comunicación entre microservicios
+  rabbitmq:
+    image: rabbitmq:3.12-management
+    container_name: gym-rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    ports:
+      - "5672:5672"    # AMQP protocol
+      - "15672:15672"  # Management UI
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+      # - ./config/rabbitmq/definitions.json:/etc/rabbitmq/definitions.json:ro
+      # - ./config/rabbitmq/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf:ro
+    networks:
+      - gym-network
+    healthcheck:
+      test: rabbitmq-diagnostics -q ping
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  # ================================
+  # BÚSQUEDA
+  # ================================
+
+  # Solr para search-api
+  solr:
+    image: solr:9.4
+    container_name: gym-solr
+    ports:
+      - "8983:8983"
+    volumes:
+      - solr_data:/var/solr
+      - ./config/solr/schedules:/opt/solr/server/solr/configsets/schedules:ro
+    networks:
+      - gym-network
+    command:
+      - solr-precreate
+      - schedules
+      - /opt/solr/server/solr/configsets/schedules
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8983/solr/schedules/admin/ping || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  # ================================
+  # CACHÉ
+  # ================================
+
+  # Memcached para search-api (caché distribuida)
+  memcached:
+    image: memcached:1.6-alpine
+    container_name: gym-memcached
+    ports:
+      - "11211:11211"
+    command: ["-m", "256"]  # 256MB de memoria
+    networks:
+      - gym-network
+    healthcheck:
+      test: ["CMD", "nc", "-z", "localhost", "11211"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ================================
+  # MICROSERVICIOS BACKEND
+  # ================================
+
+  # Users API
+  users-api:
+    build:
+      context: ./backend/users-api
+      dockerfile: Dockerfile
+    container_name: gym-users-api
+    ports:
+      - "8080:8080"
+    environment:
+      PORT: 8080
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_USER: gym_user
+      DB_PASSWORD: gym_pass
+      DB_NAME: gym_users
+      JWT_SECRET: your-super-secret-jwt-key-change-in-production
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - gym-network
+    restart: unless-stopped
+
+  # Activities API (Entidad Principal)
+  activities-api:
+    build:
+      context: ./backend/activities-api
+      dockerfile: Dockerfile
+    container_name: gym-activities-api
+    ports:
+      - "8081:8081"
+    environment:
+      PORT: 8081
+      MONGODB_URI: mongodb://admin:admin123@mongodb:27017
+      MONGODB_DATABASE: gym_db
+      RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672/
+      USERS_API_URL: http://users-api:8080
+      JWT_SECRET: your-super-secret-jwt-key-change-in-production
+    depends_on:
+      mongodb:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      users-api:
+        condition: service_started
+    networks:
+      - gym-network
+    restart: unless-stopped
+
+  # Bookings API
+  bookings-api:
+    build:
+      context: ./backend/bookings-api
+      dockerfile: Dockerfile
+    container_name: gym-bookings-api
+    ports:
+      - "8082:8082"
+    environment:
+      PORT: 8082
+      MONGODB_URI: mongodb://admin:admin123@mongodb:27017
+      MONGODB_DATABASE: gym_db
+      USERS_API_URL: http://users-api:8080
+      ACTIVITIES_API_URL: http://activities-api:8081
+    depends_on:
+      mongodb:
+        condition: service_healthy
+      users-api:
+        condition: service_started
+      activities-api:
+        condition: service_started
+    networks:
+      - gym-network
+    restart: unless-stopped
+
+  # Search API
+  search-api:
+    build:
+      context: ./backend/search-api
+      dockerfile: Dockerfile
+    container_name: gym-search-api
+    ports:
+      - "8083:8083"
+    environment:
+      PORT: 8083
+      SOLR_URL: http://solr:8983/solr/schedules
+      MEMCACHED_HOST: memcached:11211
+      RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672/
+      ACTIVITIES_API_URL: http://activities-api:8081
+    depends_on:
+      solr:
+        condition: service_healthy
+      memcached:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      activities-api:
+        condition: service_started
+    networks:
+      - gym-network
+    restart: unless-stopped
+
+  # ================================
+  # FRONTEND
+  # ================================
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: gym-frontend
+    ports:
+      - "3000:80"
+    environment:
+      REACT_APP_USERS_API_URL: http://localhost:8080
+      REACT_APP_ACTIVITIES_API_URL: http://localhost:8081
+      REACT_APP_BOOKINGS_API_URL: http://localhost:8082
+      REACT_APP_SEARCH_API_URL: http://localhost:8083
+    depends_on:
+      - users-api
+      - activities-api
+      - bookings-api
+      - search-api
+    networks:
+      - gym-network
+    restart: unless-stopped
+
+# ================================
+# REDES Y VOLÚMENES
+# ================================
+
+networks:
+  gym-network:
+    driver: bridge
+
+volumes:
+  mysql_data:
+    driver: local
+  mongodb_data:
+    driver: local
+  rabbitmq_data:
+    driver: local
+  solr_data:
+    driver: local

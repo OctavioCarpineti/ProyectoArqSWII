@@ -1,0 +1,28 @@
+backend/bookings-api/middlewares/auth_middleware.go
+```
+
+### **2. Repositories (capa de datos)**
+```
+backend/bookings-api/repositories/booking_repository.go
+backend/bookings-api/repositories/booking_mongo_repository.go
+```
+
+### **3. Services (lógica de negocio con concurrencia)**
+```
+backend/bookings-api/services/booking_service.go
+backend/bookings-api/services/booking_service_impl.go
+```
+
+### **4. Controller (endpoints HTTP)**
+```
+backend/bookings-api/controllers/booking_controller.go
+```
+
+### **5. Main (entry point)**
+```
+backend/bookings-api/main.go
+```
+
+### **6. Dockerfile (actualizar el existente)**
+```
+backend/bookings-api/Dockerfile
