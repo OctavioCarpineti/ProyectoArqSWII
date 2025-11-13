@@ -1,0 +1,581 @@
+{
+	"info": {
+		"_postman_id": "gym-booking-system-2024",
+		"name": "Gym Booking System - API Tests",
+		"description": "Colección completa de tests para el sistema de reservas de gimnasio",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"variable": [
+		{
+			"key": "BASE_USERS_URL",
+			"value": "http://localhost:8080",
+			"type": "string"
+		},
+		{
+			"key": "BASE_ACTIVITIES_URL",
+			"value": "http://localhost:8081",
+			"type": "string"
+		},
+		{
+			"key": "BASE_BOOKINGS_URL",
+			"value": "http://localhost:8082",
+			"type": "string"
+		},
+		{
+			"key": "BASE_SEARCH_URL",
+			"value": "http://localhost:8083",
+			"type": "string"
+		},
+		{
+			"key": "USER_TOKEN",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "ADMIN_TOKEN",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "USER_ID",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "ACTIVITY_ID",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "SCHEDULE_ID",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "BOOKING_ID",
+			"value": "",
+			"type": "string"
+		}
+	],
+	"item": [
+		{
+			"name": "1. users-api",
+			"item": [
+				{
+					"name": "Health Check",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{BASE_USERS_URL}}/health",
+							"host": ["{{BASE_USERS_URL}}"],
+							"path": ["health"]
+						}
+					}
+				},
+				{
+					"name": "Create User",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    var jsonData = pm.response.json();",
+									"    pm.collectionVariables.set(\"USER_ID\", jsonData.id);",
+									"}"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"username\": \"johndoe\",\n    \"email\": \"john@example.com\",\n    \"password\": \"Password123!\",\n    \"first_name\": \"John\",\n    \"last_name\": \"Doe\"\n}"
+						},
+						"url": {
+							"raw": "{{BASE_USERS_URL}}/users",
+							"host": ["{{BASE_USERS_URL}}"],
+							"path": ["users"]
+						}
+					}
+				},
+				{
+					"name": "Login User",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    var jsonData = pm.response.json();",
+									"    pm.collectionVariables.set(\"USER_TOKEN\", jsonData.token);",
+									"}"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"username_or_email\": \"johndoe\",\n    \"password\": \"Password123!\"\n}"
+						},
+						"url": {
+							"raw": "{{BASE_USERS_URL}}/login",
+							"host": ["{{BASE_USERS_URL}}"],
+							"path": ["login"]
+						}
+					}
+				},
+				{
+					"name": "Login Admin",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    var jsonData = pm.response.json();",
+									"    pm.collectionVariables.set(\"ADMIN_TOKEN\", jsonData.token);",
+									"}"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"username_or_email\": \"admin\",\n    \"password\": \"admin123\"\n}"
+						},
+						"url": {
+							"raw": "{{BASE_USERS_URL}}/login",
+							"host": ["{{BASE_USERS_URL}}"],
+							"path": ["login"]
+						}
+					}
+				},
+				{
+					"name": "Get User By ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{BASE_USERS_URL}}/users/{{USER_ID}}",
+							"host": ["{{BASE_USERS_URL}}"],
+							"path": ["users", "{{USER_ID}}"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "2. activities-api",
+			"item": [
+				{
+					"name": "Health Check",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{BASE_ACTIVITIES_URL}}/health",
+							"host": ["{{BASE_ACTIVITIES_URL}}"],
+							"path": ["health"]
+						}
+					}
+				},
+				{
+					"name": "Create Activity (Admin)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    var jsonData = pm.response.json();",
+									"    pm.collectionVariables.set(\"ACTIVITY_ID\", jsonData.id);",
+									"}"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{ADMIN_TOKEN}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"owner_id\": 1,\n    \"name\": \"Yoga Intermedio\",\n    \"description\": \"Clase de yoga nivel intermedio\",\n    \"category\": \"Yoga\",\n    \"duration\": 60,\n    \"price\": 1500.00,\n    \"image_url\": \"https://example.com/yoga.jpg\"\n}"
+						},
+						"url": {
+							"raw": "{{BASE_ACTIVITIES_URL}}/activities",
+							"host": ["{{BASE_ACTIVITIES_URL}}"],
+							"path": ["activities"]
+						}
+					}
+				},
+				{
+					"name": "List All Activities",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{BASE_ACTIVITIES_URL}}/activities",
+							"host": ["{{BASE_ACTIVITIES_URL}}"],
+							"path": ["activities"]
+						}
+					}
+				},
+				{
+					"name": "Get Activity By ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{BASE_ACTIVITIES_URL}}/activities/{{ACTIVITY_ID}}",
+							"host": ["{{BASE_ACTIVITIES_URL}}"],
+							"path": ["activities", "{{ACTIVITY_ID}}"]
+						}
+					}
+				},
+				{
+					"name": "Create Schedule",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    var jsonData = pm.response.json();",
+									"    pm.collectionVariables.set(\"SCHEDULE_ID\", jsonData.id);",
+									"}"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{ADMIN_TOKEN}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"instructor\": \"María González\",\n    \"day_of_week\": \"monday\",\n    \"start_time\": \"18:00\",\n    \"end_time\": \"19:00\",\n    \"location\": \"Sala 1 - Sede Centro\",\n    \"max_capacity\": 20\n}"
+						},
+						"url": {
+							"raw": "{{BASE_ACTIVITIES_URL}}/activities/{{ACTIVITY_ID}}/schedules",
+							"host": ["{{BASE_ACTIVITIES_URL}}"],
+							"path": ["activities", "{{ACTIVITY_ID}}", "schedules"]
+						}
+					}
+				},
+				{
+					"name": "List All Schedules",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{BASE_ACTIVITIES_URL}}/schedules",
+							"host": ["{{BASE_ACTIVITIES_URL}}"],
+							"path": ["schedules"]
+						}
+					}
+				},
+				{
+					"name": "Get Schedule By ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{BASE_ACTIVITIES_URL}}/schedules/{{SCHEDULE_ID}}",
+							"host": ["{{BASE_ACTIVITIES_URL}}"],
+							"path": ["schedules", "{{SCHEDULE_ID}}"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "3. search-api",
+			"item": [
+				{
+					"name": "Health Check",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{BASE_SEARCH_URL}}/health",
+							"host": ["{{BASE_SEARCH_URL}}"],
+							"path": ["health"]
+						}
+					}
+				},
+				{
+					"name": "Search - All",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{BASE_SEARCH_URL}}/search",
+							"host": ["{{BASE_SEARCH_URL}}"],
+							"path": ["search"]
+						}
+					}
+				},
+				{
+					"name": "Search - By Text (yoga)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{BASE_SEARCH_URL}}/search?q=yoga",
+							"host": ["{{BASE_SEARCH_URL}}"],
+							"path": ["search"],
+							"query": [
+								{
+									"key": "q",
+									"value": "yoga"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Search - By Category",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{BASE_SEARCH_URL}}/search?category=Yoga",
+							"host": ["{{BASE_SEARCH_URL}}"],
+							"path": ["search"],
+							"query": [
+								{
+									"key": "category",
+									"value": "Yoga"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Search - By Day",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{BASE_SEARCH_URL}}/search?day_of_week=monday",
+							"host": ["{{BASE_SEARCH_URL}}"],
+							"path": ["search"],
+							"query": [
+								{
+									"key": "day_of_week",
+									"value": "monday"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Search - Available Only",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{BASE_SEARCH_URL}}/search?available=true",
+							"host": ["{{BASE_SEARCH_URL}}"],
+							"path": ["search"],
+							"query": [
+								{
+									"key": "available",
+									"value": "true"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Search - Combined Filters",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{BASE_SEARCH_URL}}/search?q=yoga&day_of_week=monday&available=true&page=1&size=10",
+							"host": ["{{BASE_SEARCH_URL}}"],
+							"path": ["search"],
+							"query": [
+								{
+									"key": "q",
+									"value": "yoga"
+								},
+								{
+									"key": "day_of_week",
+									"value": "monday"
+								},
+								{
+									"key": "available",
+									"value": "true"
+								},
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "size",
+									"value": "10"
+								}
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "4. bookings-api",
+			"item": [
+				{
+					"name": "Health Check",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{BASE_BOOKINGS_URL}}/health",
+							"host": ["{{BASE_BOOKINGS_URL}}"],
+							"path": ["health"]
+						}
+					}
+				},
+				{
+					"name": "Create Booking",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    var jsonData = pm.response.json();",
+									"    pm.collectionVariables.set(\"BOOKING_ID\", jsonData.id);",
+									"}"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{USER_TOKEN}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"user_id\": {{USER_ID}},\n    \"schedule_id\": \"{{SCHEDULE_ID}}\"\n}"
+						},
+						"url": {
+							"raw": "{{BASE_BOOKINGS_URL}}/bookings",
+							"host": ["{{BASE_BOOKINGS_URL}}"],
+							"path": ["bookings"]
+						}
+					}
+				},
+				{
+					"name": "Get Booking By ID",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{USER_TOKEN}}"
+							}
+						],
+						"url": {
+							"raw": "{{BASE_BOOKINGS_URL}}/bookings/{{BOOKING_ID}}",
+							"host": ["{{BASE_BOOKINGS_URL}}"],
+							"path": ["bookings", "{{BOOKING_ID}}"]
+						}
+					}
+				},
+				{
+					"name": "List My Bookings",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{USER_TOKEN}}"
+							}
+						],
+						"url": {
+							"raw": "{{BASE_BOOKINGS_URL}}/bookings?user_id={{USER_ID}}",
+							"host": ["{{BASE_BOOKINGS_URL}}"],
+							"path": ["bookings"],
+							"query": [
+								{
+									"key": "user_id",
+									"value": "{{USER_ID}}"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Cancel Booking",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{USER_TOKEN}}"
+							}
+						],
+						"url": {
+							"raw": "{{BASE_BOOKINGS_URL}}/bookings/{{BOOKING_ID}}",
+							"host": ["{{BASE_BOOKINGS_URL}}"],
+							"path": ["bookings", "{{BOOKING_ID}}"]
+						}
+					}
+				}
+			]
+		}
+	]
+}
