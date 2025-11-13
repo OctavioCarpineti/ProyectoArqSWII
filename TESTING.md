@@ -43,13 +43,47 @@ curl http://localhost:8083/health  # search-api
 
 ## Opción 1: Scripts Automáticos
 
-### Ejecutar todos los tests (recomendado)
+### ⭐ Limpia y testea todo (RECOMENDADO)
 
 ```bash
 cd scripts
 
-# Dar permisos de ejecución
-chmod +x *.sh
+# Ejecutar limpieza completa + tests
+./clean-and-test.sh
+```
+
+Este script hace TODO automáticamente:
+1. 🧹 Limpia contenedores, volúmenes y datos
+2. 🚀 Levanta todos los servicios
+3. ⏳ Espera a que estén listos
+4. 🧪 Ejecuta todos los tests E2E
+
+**Duración:** ~2-3 minutos
+**Uso:** Ejecutar antes de presentar o cuando quieras verificar que todo funciona
+
+---
+
+### Solo limpiar (sin testear)
+
+```bash
+./scripts/clean-all.sh
+```
+
+Esto elimina:
+- Todos los contenedores
+- Todos los volúmenes (MySQL, MongoDB, RabbitMQ, Solr)
+- Cache y datos temporales
+
+---
+
+### Ejecutar tests (sin limpiar)
+
+```bash
+cd scripts
+
+# Prerequisito: servicios deben estar corriendo
+docker-compose up -d
+sleep 15
 
 # Ejecutar test completo
 ./test-all.sh
@@ -401,7 +435,25 @@ Verifica que `current_bookings` volvió a 0.
 
 ## Verificación de RabbitMQ
 
-### Acceder a la interfaz web
+### ⭐ Opción 1: Script de debugging (RECOMENDADO)
+
+```bash
+./scripts/debug-rabbitmq.sh
+```
+
+Este script automáticamente verifica:
+- ✅ RabbitMQ está corriendo
+- 📡 Exchange `schedules_exchange` existe (tipo: topic)
+- 📬 Queue `schedules_queue` existe
+- 🔗 Bindings correctos (routing_key: `schedule.*`)
+- 🔌 Consumers activos (search-api conectado)
+- 📨 Estado de mensajes (cuántos están pendientes, listos, no confirmados)
+
+**Uso:** Ejecuta este script cuando veas errores 404 en Solr o cuando search-api no retorne resultados.
+
+---
+
+### Opción 2: Interfaz web manual
 
 1. Abrir: http://localhost:15672
 2. Usuario: `guest`
@@ -425,7 +477,26 @@ Verifica que `current_bookings` volvió a 0.
 
 ## Verificación de Solr
 
-### Acceder a la interfaz web
+### ⭐ Opción 1: Script de debugging (RECOMENDADO)
+
+```bash
+./scripts/debug-solr.sh
+```
+
+Este script automáticamente verifica:
+- ✅ Solr está corriendo (http://localhost:8983)
+- 📚 Core `schedules` existe
+- 📄 Cantidad de documentos indexados
+- 📋 Listado de primeros 10 documentos
+- 🗂️ Esquema de campos
+- 🔎 Pruebas de búsqueda (texto, día, disponibilidad)
+- 📝 Logs recientes de indexación
+
+**Uso:** Ejecuta este script cuando search-api no retorne resultados o para verificar que los schedules se indexaron correctamente.
+
+---
+
+### Opción 2: Interfaz web manual
 
 1. Abrir: http://localhost:8983
 2. Click en **Core Admin** o **Core Selector**
@@ -462,21 +533,45 @@ docker-compose up -d
 docker-compose logs -f users-api
 ```
 
-### Problema: search-api no encuentra resultados
+### Problema: search-api no encuentra resultados (Test 10 falla con 404)
 
-**Causa**: El consumer de RabbitMQ aún no procesó los eventos.
+**Causa**: El consumer de RabbitMQ aún no procesó los eventos y no indexó en Solr.
 
-**Solución**:
+**Este es el flujo asíncrono**:
+1. activities-api crea schedule → publica evento a RabbitMQ
+2. RabbitMQ encola el mensaje en `schedules_queue`
+3. search-api consumer recibe el mensaje
+4. search-api indexa en Solr
+5. Ahora las búsquedas funcionan
+
+**Solución - Opción 1 (RECOMENDADA): Usar scripts de debugging**
+```bash
+# Ver estado completo de RabbitMQ
+./scripts/debug-rabbitmq.sh
+
+# Ver estado completo de Solr
+./scripts/debug-solr.sh
+```
+
+**Solución - Opción 2: Manual**
 ```bash
 # Ver logs del consumer
-docker-compose logs -f search-api
+docker-compose logs -f search-api | grep -E "Mensaje recibido|indexando|Solr"
 
 # Esperar 5-10 segundos después de crear schedules
 sleep 10
 
 # Reintentar búsqueda
 curl http://localhost:8083/search
+
+# Verificar manualmente en Solr
+curl "http://localhost:8983/solr/schedules/select?q=*:*&wt=json&indent=true"
 ```
+
+**Si el consumer NO está procesando:**
+- Verificar que search-api está corriendo: `docker-compose ps search-api`
+- Ver logs de errores: `docker-compose logs search-api | grep -i error`
+- Reiniciar el servicio: `docker-compose restart search-api`
 
 ### Problema: Error 401 en requests autenticados
 

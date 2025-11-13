@@ -43,6 +43,8 @@
     <field name="available_spots" type="int" indexed="true" stored="true"/>
     <field name="price" type="double" indexed="true" stored="true"/>
     <field name="status" type="string" indexed="true" stored="true"/>
+    <field name="created_at" type="date" indexed="true" stored="true"/>
+    <field name="updated_at" type="date" indexed="true" stored="true"/>
 
     <!-- Campo para búsqueda general (copia de varios campos) -->
     <field name="text" type="text_general" indexed="true" stored="false" multiValued="true"/>
