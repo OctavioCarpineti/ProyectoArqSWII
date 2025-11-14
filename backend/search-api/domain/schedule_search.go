@@ -13,7 +13,7 @@ type ScheduleSearch struct {
 	// Información de la actividad (desnormalizada)
 	ActivityName     string  `json:"activity_name"`
 	ActivityCategory string  `json:"activity_category"`
-	ActivityPrice    float64 `json:"activity_price"`
+	ActivityPrice    float64 `json:"price"` // Changed from "activity_price" to match Solr schema
 
 	// Información del horario
 	Instructor string `json:"instructor"`
