@@ -134,13 +134,15 @@ function Search() {
                 value={category}
                 onChange={(e) => setCategory(e.target.value)}
               >
-                <option value="">Todas</option>
-                <option value="cardio">Cardio</option>
-                <option value="strength">Fuerza</option>
-                <option value="flexibility">Flexibilidad</option>
-                <option value="dance">Baile</option>
-                <option value="martial_arts">Artes Marciales</option>
-                <option value="aquatic">Acuática</option>
+                  <option value="">Todas</option>
+                  <option value="Yoga">Yoga</option>
+                  <option value="Spinning">Spinning</option>
+                  <option value="Pilates">Pilates</option>
+                  <option value="Funcional">Funcional</option>
+                  <option value="CrossFit">CrossFit</option>
+                  <option value="Zumba">Zumba</option>
+                  <option value="Boxing">Boxing</option>
+                  <option value="Natacion">Natación</option>
               </select>
             </div>
 
