@@ -76,7 +76,7 @@ echo ""
 
 # Verificar queue ANTES
 echo "📊 Estado de RabbitMQ queue ANTES de crear booking:"
-docker exec gym-rabbitmq rabbitmqctl list_queues name messages | grep search.schedules
+docker exec gym-rabbitmq rabbitmqctl list_queues name messages | grep schedules_queue
 echo ""
 
 # Crear booking
@@ -134,7 +134,7 @@ if [ "$BOOKING_ID" != "ERROR" ]; then
 
     # Verificar queue DESPUÉS
     echo "📊 Estado de RabbitMQ queue DESPUÉS de crear booking:"
-    docker exec gym-rabbitmq rabbitmqctl list_queues name messages | grep search.schedules
+    docker exec gym-rabbitmq rabbitmqctl list_queues name messages | grep schedules_queue
     echo ""
 
     # Verificar actualización en Solr
@@ -163,8 +163,9 @@ echo "║                   ✅ RESUMEN FINAL                     ║"
 echo "╚════════════════════════════════════════════════════════╝"
 echo ""
 echo -e "${GREEN}✅ RabbitMQ:${NC}"
-echo "   - Exchange 'gym.schedules' configurado"
-echo "   - Queue 'search.schedules.updates' con consumer activo"
+echo "   - Exchange 'schedules_exchange' (tipo: topic) configurado"
+echo "   - Queue 'schedules_queue' con consumer activo"
+echo "   - Binding con routing key 'schedule.*' funcionando"
 echo "   - Mensajes se publican y consumen correctamente"
 echo ""
 echo -e "${GREEN}✅ Solr:${NC}"
