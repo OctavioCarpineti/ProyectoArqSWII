@@ -2,7 +2,7 @@ package services
 
 import (
 	"activities-api/domain"
-	"activities-api/repositories"
+	"activities-api/messaging"
 )
 
 // ScheduleService define la interface para el servicio de horarios
@@ -29,5 +29,5 @@ type ScheduleService interface {
 	UpdateCurrentBookings(scheduleID string, increment bool) error
 
 	// Nuevo método para inyectar el publisher
-	SetPublisher(publisher *repositories.RabbitMQPublisher)
+	SetPublisher(publisher *messaging.RabbitMQPublisher)
 }

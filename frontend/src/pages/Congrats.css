@@ -1,0 +1,124 @@
+.congrats-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  padding: 20px;
+}
+
+.congrats-card {
+  max-width: 600px;
+  width: 100%;
+  text-align: center;
+}
+
+.congrats-icon {
+  font-size: 120px;
+  margin-bottom: 20px;
+  animation: bounce 1s ease-in-out;
+}
+
+@keyframes bounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-20px);
+  }
+}
+
+.congrats-card h1 {
+  font-size: 36px;
+  color: #667eea;
+  margin-bottom: 15px;
+}
+
+.congrats-message {
+  font-size: 18px;
+  color: #6b7280;
+  margin-bottom: 30px;
+}
+
+.booking-summary {
+  background: #f9fafb;
+  padding: 25px;
+  border-radius: 12px;
+  margin-bottom: 30px;
+  text-align: left;
+}
+
+.booking-summary h3 {
+  text-align: center;
+  color: #374151;
+  margin-bottom: 20px;
+  font-size: 20px;
+}
+
+.summary-items {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.summary-item {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding: 15px;
+  background: white;
+  border-radius: 8px;
+  border-left: 4px solid #667eea;
+}
+
+.summary-icon {
+  font-size: 28px;
+  flex-shrink: 0;
+}
+
+.summary-item > div {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.summary-label {
+  font-size: 12px;
+  color: #6b7280;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.summary-value {
+  font-size: 16px;
+  color: #1f2937;
+  font-weight: 600;
+}
+
+.congrats-actions {
+  margin-bottom: 20px;
+}
+
+.congrats-footer {
+  padding-top: 20px;
+  border-top: 2px solid #f3f4f6;
+}
+
+.congrats-footer p {
+  color: #6b7280;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+@media (max-width: 768px) {
+  .congrats-icon {
+    font-size: 80px;
+  }
+
+  .congrats-card h1 {
+    font-size: 28px;
+  }
+
+  .btn-large {
+    width: 100%;
+  }
+}

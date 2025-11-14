@@ -234,10 +234,10 @@ services:
     ports:
       - "3000:80"
     environment:
-      REACT_APP_USERS_API_URL: http://localhost:8080
-      REACT_APP_ACTIVITIES_API_URL: http://localhost:8081
-      REACT_APP_BOOKINGS_API_URL: http://localhost:8082
-      REACT_APP_SEARCH_API_URL: http://localhost:8083
+      VITE_USERS_API_URL: http://localhost:8080
+      VITE_ACTIVITIES_API_URL: http://localhost:8081
+      VITE_BOOKINGS_API_URL: http://localhost:8082
+      VITE_SEARCH_API_URL: http://localhost:8083
     depends_on:
       - users-api
       - activities-api

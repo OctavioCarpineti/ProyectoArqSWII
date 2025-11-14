@@ -119,12 +119,14 @@ func (s *ScheduleServiceImpl) CreateSchedule(activityID string, req domain.Creat
 		return nil, err
 	}
 
-	// Publicar evento a RabbitMQ
-	event := domain.NewScheduleEvent("CREATE", schedule.ID.Hex(), activityID)
-	err = s.publisher.PublishScheduleEvent(event)
-	if err != nil {
-		// Log error pero no fallar la operación
-		fmt.Printf("Warning: failed to publish event: %v\n", err)
+	// Publicar evento a RabbitMQ (si el publisher está disponible)
+	if s.publisher != nil {
+		event := domain.NewScheduleEvent("CREATE", schedule.ID.Hex(), activityID)
+		err = s.publisher.PublishScheduleEvent(event)
+		if err != nil {
+			// Log error pero no fallar la operación
+			fmt.Printf("Warning: failed to publish event: %v\n", err)
+		}
 	}
 
 	response := schedule.ToScheduleResponse()
@@ -297,4 +299,9 @@ func (s *ScheduleServiceImpl) UpdateCurrentBookings(scheduleID string, increment
 		return s.scheduleRepo.IncrementBookings(scheduleID)
 	}
 	return s.scheduleRepo.DecrementBookings(scheduleID)
+}
+
+// SetPublisher permite inyectar el publisher (usado para testing)
+func (s *ScheduleServiceImpl) SetPublisher(publisher *messaging.RabbitMQPublisher) {
+	s.publisher = publisher
 }

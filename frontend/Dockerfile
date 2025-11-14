@@ -1,11 +1,30 @@
-# Imagen base mínima
+# Etapa 1: Build de la aplicación React
+FROM node:18-alpine AS builder
+
+WORKDIR /app
+
+# Copiar package.json y package-lock.json
+COPY package*.json ./
+
+# Instalar dependencias
+RUN npm install
+
+# Copiar el resto del código
+COPY . .
+
+# Build de la aplicación para producción
+RUN npm run build
+
+# Etapa 2: Servidor nginx para servir la aplicación
 FROM nginx:alpine
 
-# Crear un archivo HTML vacío para evitar errores de ruta
-RUN mkdir -p /usr/share/nginx/html \
-    && echo "<h1>Frontend temporal - React pendiente</h1>" > /usr/share/nginx/html/index.html
+# Copiar archivos build desde la etapa anterior
+COPY --from=builder /app/dist /usr/share/nginx/html
 
-# Exponer el puerto (para mantener compatibilidad con docker-compose)
+# Copiar configuración personalizada de nginx
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+
+# Exponer puerto 80
 EXPOSE 80
 
 # Comando por defecto
