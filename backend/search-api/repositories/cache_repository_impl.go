@@ -122,14 +122,25 @@ func (r *CacheRepositoryImpl) Delete(key string) error {
 // InvalidatePattern invalida todas las keys que coincidan con un patrón
 // Nota: Esta implementación es simplificada. En producción usarías Redis con SCAN
 func (r *CacheRepositoryImpl) InvalidatePattern(pattern string) error {
-	// Para CCache (L1), necesitaríamos mantener un registro de keys
-	// Por ahora, limpiamos todo el caché local si hay un patrón
-	log.Printf("⚠️  InvalidatePattern called with: %s (clearing local cache)", pattern)
+	// Para CCache (L1), limpiamos todo el caché local
+
+	log.Printf("🗑️  InvalidatePattern called with: %s (clearing L1 and L2 cache)", pattern)
+
 	r.localCache.Clear()
 
-	// Para Memcached (L2), no hay forma nativa de invalidar por patrón
-	// Se requeriría mantener un índice de keys o usar tags
-	log.Printf("⚠️  Note: Memcached doesn't support pattern invalidation natively")
+	// Para Memcached (L2), hacemos flush completo ya que no soporta pattern invalidation
+
+	// Esto asegura que los datos actualizados se obtengan de Solr
+
+	if err := r.memcached.FlushAll(); err != nil {
+
+		log.Printf("⚠️  Warning: Failed to flush Memcached: %v", err)
+
+	} else {
+
+		log.Printf("✅ Memcached (L2) flushed successfully")
+
+	}
 
 	return nil
 }

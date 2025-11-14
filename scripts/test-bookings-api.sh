@@ -219,6 +219,24 @@ else
 fi
 echo ""
 
+# Test 11: Cancelar segunda reserva (si existe)
+if [ -n "$BOOKING_ID_2" ]; then
+    echo "📍 Test 11: Cancelar segunda reserva"
+    response=$(curl -s -w "\n%{http_code}" -X DELETE "$BASE_URL/bookings/$BOOKING_ID_2" \
+      -H "Authorization: Bearer $USER_TOKEN")
+    http_code=$(echo "$response" | tail -n1)
+    body=$(echo "$response" | sed '$d')
+
+    if [ "$http_code" = "200" ] || [ "$http_code" = "204" ]; then
+        echo -e "${GREEN}✅ Segunda reserva cancelada${NC}"
+        echo "Response: $body"
+    else
+        echo -e "${YELLOW}⚠️  Error al cancelar segunda reserva (HTTP $http_code)${NC}"
+        echo "Response: $body"
+    fi
+    echo ""
+fi
+
 # Guardar IDs de bookings
 cat >> /tmp/gym-tokens.env << EOF
 BOOKING_ID=$BOOKING_ID
@@ -239,4 +257,4 @@ echo "  ✅ Validación de usuario (HTTP a users-api)"
 echo "  ✅ Validación de schedule (HTTP a activities-api)"
 echo "  ✅ Detección de duplicados (MongoDB)"
 echo "  ✅ Actualización de current_bookings"
-echo "  ✅ Soft delete funcionando"
+echo "  ✅ Soft delete funcionando (ambas reservas canceladas)"
