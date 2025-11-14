@@ -65,9 +65,26 @@ function ScheduleDetails() {
     }
   }
 
-  const getDayName = (dayNum) => {
-    const days = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado']
-    return days[dayNum] || dayNum
+  const getDayName = (day) => {
+    // Mapeo de inglés a español
+    const dayMapping = {
+      'sunday': 'Domingo',
+      'monday': 'Lunes',
+      'tuesday': 'Martes',
+      'wednesday': 'Miércoles',
+      'thursday': 'Jueves',
+      'friday': 'Viernes',
+      'saturday': 'Sábado'
+    }
+
+    // Si es un número, convertir
+    if (!isNaN(day)) {
+      const days = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado']
+      return days[parseInt(day)] || day
+    }
+
+    // Si es string en inglés, traducir
+    return dayMapping[day.toLowerCase()] || day
   }
 
   if (loading) {

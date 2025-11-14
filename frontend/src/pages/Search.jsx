@@ -21,6 +21,15 @@ function Search() {
     handleSearch()
   }, [])
 
+  // Recargar cuando se vuelve de otra página (ej: después de reservar)
+  useEffect(() => {
+    const handleFocus = () => {
+      handleSearch()
+    }
+    window.addEventListener('focus', handleFocus)
+    return () => window.removeEventListener('focus', handleFocus)
+  }, [searchQuery, category, dayOfWeek, instructor])
+
   const handleSearch = async (e) => {
     if (e) e.preventDefault()
 
@@ -28,10 +37,21 @@ function Search() {
     setError('')
 
     try {
+      // Mapear día de la semana de número a nombre en inglés
+      const dayMapping = {
+        '0': 'sunday',
+        '1': 'monday',
+        '2': 'tuesday',
+        '3': 'wednesday',
+        '4': 'thursday',
+        '5': 'friday',
+        '6': 'saturday'
+      }
+
       const params = {
         q: searchQuery || undefined,
         category: category || undefined,
-        day_of_week: dayOfWeek || undefined,
+        day_of_week: dayOfWeek ? dayMapping[dayOfWeek] : undefined,
         instructor: instructor || undefined,
         available: true, // Solo mostrar clases disponibles
         page: 1,
@@ -57,9 +77,26 @@ function Search() {
     navigate(`/schedule/${scheduleId}`)
   }
 
-  const getDayName = (dayNum) => {
-    const days = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado']
-    return days[dayNum] || dayNum
+  const getDayName = (day) => {
+    // Mapeo de inglés a español
+    const dayMapping = {
+      'sunday': 'Domingo',
+      'monday': 'Lunes',
+      'tuesday': 'Martes',
+      'wednesday': 'Miércoles',
+      'thursday': 'Jueves',
+      'friday': 'Viernes',
+      'saturday': 'Sábado'
+    }
+
+    // Si es un número, convertir
+    if (!isNaN(day)) {
+      const days = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado']
+      return days[parseInt(day)] || day
+    }
+
+    // Si es string en inglés, traducir
+    return dayMapping[day.toLowerCase()] || day
   }
 
   return (

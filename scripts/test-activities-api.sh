@@ -52,7 +52,7 @@ response=$(curl -s -w "\n%{http_code}" -X POST $BASE_URL/activities \
     \"owner_id\": $ADMIN_USER_ID,
     \"name\": \"Yoga Intermedio\",
     \"description\": \"Clase de yoga nivel intermedio para mejorar flexibilidad\",
-    \"category\": \"Yoga\",
+    \"category\": \"flexibility\",
     \"duration\": 60,
     \"price\": 1500.00,
     \"image_url\": \"https://example.com/yoga.jpg\"
@@ -81,7 +81,7 @@ response=$(curl -s -w "\n%{http_code}" -X POST $BASE_URL/activities \
     \"owner_id\": $ADMIN_USER_ID,
     \"name\": \"Spinning Avanzado\",
     \"description\": \"Clase intensiva de spinning\",
-    \"category\": \"Spinning\",
+    \"category\": \"cardio\",
     \"duration\": 45,
     \"price\": 1200.00,
     \"image_url\": \"https://example.com/spinning.jpg\"

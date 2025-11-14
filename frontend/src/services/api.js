@@ -50,7 +50,11 @@ export const createUser = async (userData) => {
 export const searchSchedules = async (params = {}) => {
   const queryParams = new URLSearchParams();
 
-  if (params.q) queryParams.append('q', params.q);
+  // Agregar wildcards para búsqueda parcial
+  if (params.q) {
+    const query = params.q.includes('*') ? params.q : `*${params.q}*`;
+    queryParams.append('q', query);
+  }
   if (params.category) queryParams.append('category', params.category);
   if (params.day_of_week) queryParams.append('day_of_week', params.day_of_week);
   if (params.instructor) queryParams.append('instructor', params.instructor);
