@@ -99,6 +99,61 @@ else
 fi
 echo ""
 
+# Test 3.1: Crear tercera actividad (Pilates)
+echo "📍 Test 3.1: Crear tercera actividad (Pilates)"
+response=$(curl -s -w "\n%{http_code}" -X POST $BASE_URL/activities \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $ADMIN_TOKEN" \
+  -d "{
+    \"owner_id\": $ADMIN_USER_ID,
+    \"name\": \"Pilates Mat\",
+    \"description\": \"Clase de pilates en colchoneta para fortalecer core\",
+    \"category\": \"Pilates\",
+    \"duration\": 50,
+    \"price\": 1400.00,
+    \"image_url\": \"https://example.com/pilates.jpg\"
+  }")
+http_code=$(echo "$response" | tail -n1)
+body=$(echo "$response" | sed '$d')
+
+if [ "$http_code" = "201" ]; then
+    echo -e "${GREEN}✅ Tercera actividad creada (Pilates)${NC}"
+    ACTIVITY_ID_3=$(echo "$body" | grep -o '"id":"[^"]*' | cut -d'"' -f4)
+    echo "Activity ID 3: $ACTIVITY_ID_3"
+else
+    echo -e "${RED}❌ Error (HTTP $http_code)${NC}"
+    echo "Response: $body"
+fi
+echo ""
+
+# Test 3.2: Crear cuarta actividad (CrossFit)
+echo "📍 Test 3.2: Crear cuarta actividad (CrossFit)"
+response=$(curl -s -w "\n%{http_code}" -X POST $BASE_URL/activities \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $ADMIN_TOKEN" \
+  -d "{
+    \"owner_id\": $ADMIN_USER_ID,
+    \"name\": \"CrossFit WOD\",
+    \"description\": \"Entrenamiento funcional de alta intensidad\",
+    \"category\": \"CrossFit\",
+    \"duration\": 60,
+    \"price\": 1800.00,
+    \"image_url\": \"https://example.com/crossfit.jpg\"
+  }")
+http_code=$(echo "$response" | tail -n1)
+body=$(echo "$response" | sed '$d')
+
+if [ "$http_code" = "201" ]; then
+    echo -e "${GREEN}✅ Cuarta actividad creada (CrossFit)${NC}"
+    ACTIVITY_ID_4=$(echo "$body" | grep -o '"id":"[^"]*' | cut -d'"' -f4)
+    echo "Activity ID 4: $ACTIVITY_ID_4"
+else
+    echo -e "${RED}❌ Error (HTTP $http_code)${NC}"
+    echo "Response: $body"
+fi
+echo ""
+
+
 # Test 4: Listar todas las actividades
 echo "📍 Test 4: Listar todas las actividades"
 response=$(curl -s -w "\n%{http_code}" -X GET $BASE_URL/activities)
@@ -183,6 +238,91 @@ else
 fi
 echo ""
 
+
+# Test 7.1: Crear horario para Pilates (Martes)
+if [ -n "$ACTIVITY_ID_3" ]; then
+    echo "📍 Test 7.1: Crear horario para Pilates (Martes)"
+    response=$(curl -s -w "\n%{http_code}" -X POST "$BASE_URL/activities/$ACTIVITY_ID_3/schedules" \
+      -H "Content-Type: application/json" \
+      -H "Authorization: Bearer $ADMIN_TOKEN" \
+      -d '{
+        "instructor": "Laura Martínez",
+        "day_of_week": "tuesday",
+        "start_time": "10:00",
+        "end_time": "10:50",
+        "location": "Sala 3 - Sede Sur",
+        "max_capacity": 12
+      }')
+    http_code=$(echo "$response" | tail -n1)
+    body=$(echo "$response" | sed '$d')
+
+    if [ "$http_code" = "201" ]; then
+        echo -e "${GREEN}✅ Horario de Pilates creado${NC}"
+        SCHEDULE_ID_3=$(echo "$body" | grep -o '"id":"[^"]*' | cut -d'"' -f4)
+        echo "Schedule ID 3: $SCHEDULE_ID_3"
+    else
+        echo -e "${YELLOW}⚠️  Error (HTTP $http_code)${NC}"
+        echo "Response: $body"
+    fi
+    echo ""
+fi
+
+# Test 7.2: Crear horario para CrossFit (Viernes)
+if [ -n "$ACTIVITY_ID_4" ]; then
+    echo "📍 Test 7.2: Crear horario para CrossFit (Viernes)"
+    response=$(curl -s -w "\n%{http_code}" -X POST "$BASE_URL/activities/$ACTIVITY_ID_4/schedules" \
+      -H "Content-Type: application/json" \
+      -H "Authorization: Bearer $ADMIN_TOKEN" \
+      -d '{
+        "instructor": "Carlos Ruiz",
+        "day_of_week": "friday",
+        "start_time": "17:00",
+        "end_time": "18:00",
+        "location": "Box - Sede Norte",
+        "max_capacity": 25
+      }')
+    http_code=$(echo "$response" | tail -n1)
+    body=$(echo "$response" | sed '$d')
+
+    if [ "$http_code" = "201" ]; then
+        echo -e "${GREEN}✅ Horario de CrossFit creado${NC}"
+        SCHEDULE_ID_4=$(echo "$body" | grep -o '"id":"[^"]*' | cut -d'"' -f4)
+        echo "Schedule ID 4: $SCHEDULE_ID_4"
+    else
+        echo -e "${YELLOW}⚠️  Error (HTTP $http_code)${NC}"
+        echo "Response: $body"
+    fi
+    echo ""
+fi
+
+# Test 7.3: Crear horario para Spinning (Jueves)
+if [ -n "$ACTIVITY_ID_2" ]; then
+    echo "📍 Test 7.3: Crear horario para Spinning (Jueves)"
+    response=$(curl -s -w "\n%{http_code}" -X POST "$BASE_URL/activities/$ACTIVITY_ID_2/schedules" \
+      -H "Content-Type: application/json" \
+      -H "Authorization: Bearer $ADMIN_TOKEN" \
+      -d '{
+        "instructor": "Pedro Sánchez",
+        "day_of_week": "thursday",
+        "start_time": "07:00",
+        "end_time": "07:45",
+        "location": "Sala de Spinning - Sede Centro",
+        "max_capacity": 30
+      }')
+    http_code=$(echo "$response" | tail -n1)
+    body=$(echo "$response" | sed '$d')
+
+    if [ "$http_code" = "201" ]; then
+        echo -e "${GREEN}✅ Horario de Spinning creado${NC}"
+        SCHEDULE_ID_5=$(echo "$body" | grep -o '"id":"[^"]*' | cut -d'"' -f4)
+        echo "Schedule ID 5: $SCHEDULE_ID_5"
+    else
+        echo -e "${YELLOW}⚠️  Error (HTTP $http_code)${NC}"
+        echo "Response: $body"
+    fi
+    echo ""
+fi
+
 # Test 8: Intentar crear horario con conflicto (debe fallar)
 echo "📍 Test 8: Crear horario con conflicto (debe fallar)"
 response=$(curl -s -w "\n%{http_code}" -X POST "$BASE_URL/activities/$ACTIVITY_ID/schedules" \
@@ -241,8 +381,13 @@ echo ""
 cat >> /tmp/gym-tokens.env << EOF
 ACTIVITY_ID=$ACTIVITY_ID
 ACTIVITY_ID_2=$ACTIVITY_ID_2
+ACTIVITY_ID_3=${ACTIVITY_ID_3:-}
+ACTIVITY_ID_4=${ACTIVITY_ID_4:-}
 SCHEDULE_ID=$SCHEDULE_ID
 SCHEDULE_ID_2=$SCHEDULE_ID_2
+SCHEDULE_ID_3=${SCHEDULE_ID_3:-}
+SCHEDULE_ID_4=${SCHEDULE_ID_4:-}
+SCHEDULE_ID_5=${SCHEDULE_ID_5:-}
 EOF
 
 echo "=================================="
@@ -250,10 +395,16 @@ echo -e "${GREEN}✅ TODOS LOS TESTS DE ACTIVITIES-API PASARON${NC}"
 echo "=================================="
 echo ""
 echo "Variables exportadas:"
-echo "  ACTIVITY_ID=$ACTIVITY_ID"
-echo "  ACTIVITY_ID_2=$ACTIVITY_ID_2"
-echo "  SCHEDULE_ID=$SCHEDULE_ID"
-echo "  SCHEDULE_ID_2=$SCHEDULE_ID_2"
+echo "Variables exportadas:"
+echo "  ACTIVITY_ID=$ACTIVITY_ID (Yoga)"
+echo "  ACTIVITY_ID_2=$ACTIVITY_ID_2 (Spinning)"
+echo "  ACTIVITY_ID_3=${ACTIVITY_ID_3:-N/A} (Pilates)"
+echo "  ACTIVITY_ID_4=${ACTIVITY_ID_4:-N/A} (CrossFit)"
+echo "  SCHEDULE_ID=$SCHEDULE_ID (Yoga - Lunes)"
+echo "  SCHEDULE_ID_2=$SCHEDULE_ID_2 (Yoga - Miércoles)"
+echo "  SCHEDULE_ID_3=${SCHEDULE_ID_3:-N/A} (Pilates - Martes)"
+echo "  SCHEDULE_ID_4=${SCHEDULE_ID_4:-N/A} (CrossFit - Viernes)"
+echo "  SCHEDULE_ID_5=${SCHEDULE_ID_5:-N/A} (Spinning - Jueves)"
 echo ""
 echo "⏳ Esperando 3 segundos para que RabbitMQ propague eventos..."
 sleep 3

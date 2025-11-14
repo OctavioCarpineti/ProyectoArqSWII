@@ -185,6 +185,9 @@ db.createCollection('bookings', {
 });
 
 // Crear índices para bookings
+
+// NOTA: El índice único de user_id + schedule_id se crea en init-indexes.js como índice parcial
+// para permitir re-inscripciones después de cancelar
 db.bookings.createIndex({ "user_id": 1 });
 db.bookings.createIndex({ "schedule_id": 1 });
 db.bookings.createIndex({ "status": 1 });

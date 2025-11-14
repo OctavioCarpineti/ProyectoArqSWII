@@ -97,6 +97,19 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 echo ""
+sleep 2
+
+# Test 5: demo-rabbitmq-solr (verificación de integración)
+echo -e "${BLUE}╔══════════════════════════════════════╗${NC}"
+echo -e "${BLUE}║   FASE 5/5: Demo RabbitMQ + Solr    ║${NC}"
+echo -e "${BLUE}╚══════════════════════════════════════╝${NC}"
+bash "$SCRIPT_DIR/demo-rabbitmq-solr.sh"
+if [ $? -ne 0 ]; then
+    echo -e "${RED}❌ Error en demo${NC}"
+    exit 1
+fi
+echo ""
+
 
 # Resumen final
 echo ""
@@ -106,13 +119,14 @@ echo "╚═══════════════════════�
 echo ""
 echo -e "${GREEN}✅ Flujo completo verificado:${NC}"
 echo "   1. ✅ Creación de usuarios y login (JWT)"
-echo "   2. ✅ Creación de actividades y horarios (con concurrencia)"
+echo "   2. ✅ Creación de 4 actividades y horarios (con concurrencia)"
 echo "   3. ✅ Publicación de eventos a RabbitMQ"
 echo "   4. ✅ Consumo de eventos e indexación en Solr"
 echo "   5. ✅ Búsquedas con filtros y caché multinivel"
 echo "   6. ✅ Creación de reservas (con concurrencia y validaciones)"
 echo "   7. ✅ Actualización de current_bookings"
 echo "   8. ✅ Soft delete de reservas"
+echo "   9. ✅ Verificación de RabbitMQ + Solr integración"
 echo ""
 echo -e "${GREEN}🚀 El backend está funcionando PERFECTAMENTE${NC}"
 echo ""
