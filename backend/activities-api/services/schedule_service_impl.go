@@ -295,10 +295,34 @@ func (s *ScheduleServiceImpl) DeleteSchedule(id string, userID uint, userRole st
 
 // UpdateCurrentBookings actualiza el contador de reservas
 func (s *ScheduleServiceImpl) UpdateCurrentBookings(scheduleID string, increment bool) error {
-	if increment {
-		return s.scheduleRepo.IncrementBookings(scheduleID)
+	// Primero obtener el schedule para tener el activity_id
+	schedule, err := s.scheduleRepo.GetByID(scheduleID)
+	if err != nil {
+		return err
 	}
-	return s.scheduleRepo.DecrementBookings(scheduleID)
+
+	// Actualizar el contador en MongoDB
+	if increment {
+		err = s.scheduleRepo.IncrementBookings(scheduleID)
+	} else {
+		err = s.scheduleRepo.DecrementBookings(scheduleID)
+	}
+
+	if err != nil {
+		return err
+	}
+
+	// Publicar evento UPDATE a RabbitMQ para sincronizar con Solr
+	if s.publisher != nil {
+		event := domain.NewScheduleEvent("UPDATE", scheduleID, schedule.ActivityID)
+		err = s.publisher.PublishScheduleEvent(event)
+		if err != nil {
+			// Log error pero no fallar la operación
+			fmt.Printf("Warning: failed to publish event: %v\n", err)
+		}
+	}
+
+	return nil
 }
 
 // SetPublisher permite inyectar el publisher (usado para testing)
