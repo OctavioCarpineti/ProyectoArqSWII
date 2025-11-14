@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 import { searchSchedules, getAuthData, clearAuthData } from '../services/api'
 import './Search.css'
 
@@ -13,22 +13,17 @@ function Search() {
   const [error, setError] = useState('')
   const [user, setUser] = useState(null)
   const navigate = useNavigate()
+  const location = useLocation()
 
   useEffect(() => {
     const { user: userData } = getAuthData()
     setUser(userData)
-    // Cargar schedules iniciales
-    handleSearch()
   }, [])
 
-  // Recargar cuando se vuelve de otra página (ej: después de reservar)
+  // Recargar resultados cuando cambia la ubicación o se monta el componente
   useEffect(() => {
-    const handleFocus = () => {
-      handleSearch()
-    }
-    window.addEventListener('focus', handleFocus)
-    return () => window.removeEventListener('focus', handleFocus)
-  }, [searchQuery, category, dayOfWeek, instructor])
+    handleSearch()
+  }, [location.pathname])
 
   const handleSearch = async (e) => {
     if (e) e.preventDefault()
