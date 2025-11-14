@@ -40,7 +40,7 @@ func main() {
 	scheduleRepo := repositories.NewScheduleMongoRepository(db)
 
 	// Inicializar servicios
-	activityService := services.NewActivityService(activityRepo, scheduleRepo, userClient)
+	activityService := services.NewActivityService(activityRepo, scheduleRepo, userClient, publisher)
 	scheduleService := services.NewScheduleService(scheduleRepo, activityRepo, userClient, publisher)
 
 	// Inicializar controladores

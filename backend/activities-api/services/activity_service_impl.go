@@ -3,6 +3,7 @@ package services
 import (
 	"activities-api/clients"
 	"activities-api/domain"
+	"activities-api/messaging"
 	"activities-api/repositories"
 	"fmt"
 )
@@ -12,6 +13,7 @@ type ActivityServiceImpl struct {
 	activityRepo repositories.ActivityRepository
 	scheduleRepo repositories.ScheduleRepository
 	userClient   *clients.UserClient
+	publisher    *messaging.RabbitMQPublisher
 }
 
 // NewActivityService crea una nueva instancia del servicio
@@ -19,11 +21,13 @@ func NewActivityService(
 	activityRepo repositories.ActivityRepository,
 	scheduleRepo repositories.ScheduleRepository,
 	userClient *clients.UserClient,
+	publisher *messaging.RabbitMQPublisher,
 ) ActivityService {
 	return &ActivityServiceImpl{
 		activityRepo: activityRepo,
 		scheduleRepo: scheduleRepo,
 		userClient:   userClient,
+		publisher:    publisher,
 	}
 }
 
@@ -107,9 +111,14 @@ func (s *ActivityServiceImpl) UpdateActivity(id string, req domain.UpdateActivit
 		return nil, domain.ErrUnauthorized
 	}
 
+	// Bandera para saber si necesitamos actualizar Solr
+	// Solo si cambian campos que están denormalizados en ScheduleSearch
+	needsSolrUpdate := false
+
 	// Actualizar campos
 	if req.Name != "" {
 		activity.Name = req.Name
+		needsSolrUpdate = true
 	}
 	if req.Description != "" {
 		activity.Description = req.Description
@@ -127,12 +136,14 @@ func (s *ActivityServiceImpl) UpdateActivity(id string, req domain.UpdateActivit
 			return nil, domain.ErrInvalidCategory
 		}
 		activity.Category = req.Category
+		needsSolrUpdate = true
 	}
 	if req.Duration > 0 {
 		activity.Duration = req.Duration
 	}
 	if req.Price >= 0 {
 		activity.Price = req.Price
+		needsSolrUpdate = true
 	}
 	if req.ImageURL != "" {
 		activity.ImageURL = req.ImageURL
@@ -144,6 +155,25 @@ func (s *ActivityServiceImpl) UpdateActivity(id string, req domain.UpdateActivit
 	err = s.activityRepo.Update(activity)
 	if err != nil {
 		return nil, err
+	}
+
+	// Si cambiaron campos denormalizados, actualizar todos los schedules en Solr
+	if needsSolrUpdate && s.publisher != nil {
+		// Obtener todos los schedules de esta actividad
+		schedules, err := s.scheduleRepo.GetByActivityID(id)
+		if err != nil {
+			// Log pero no fallar la operación principal
+			fmt.Printf("Warning: failed to get schedules for Solr update: %v\n", err)
+		} else {
+			// Publicar evento UPDATE para cada schedule
+			for _, schedule := range schedules {
+				event := domain.NewScheduleEvent("UPDATE", schedule.ID.Hex(), id)
+				err = s.publisher.PublishScheduleEvent(event)
+				if err != nil {
+					fmt.Printf("Warning: failed to publish schedule update event: %v\n", err)
+				}
+			}
+		}
 	}
 
 	response := activity.ToActivityResponse()
@@ -170,9 +200,22 @@ func (s *ActivityServiceImpl) DeleteActivity(id string, userID uint, userRole st
 	}
 
 	for _, schedule := range schedules {
-		err = s.scheduleRepo.Delete(schedule.ID.Hex())
+		scheduleID := schedule.ID.Hex()
+
+		// Eliminar el schedule de MongoDB
+		err = s.scheduleRepo.Delete(scheduleID)
 		if err != nil {
 			return fmt.Errorf("failed to delete schedule: %w", err)
+		}
+
+		// Publicar evento DELETE a RabbitMQ para sincronizar con Solr
+		if s.publisher != nil {
+			event := domain.NewScheduleEvent("DELETE", scheduleID, id)
+			err = s.publisher.PublishScheduleEvent(event)
+			if err != nil {
+				// Log error pero no fallar la operación
+				fmt.Printf("Warning: failed to publish schedule delete event: %v\n", err)
+			}
 		}
 	}
 
